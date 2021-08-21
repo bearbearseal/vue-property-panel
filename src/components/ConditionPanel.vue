@@ -1,5 +1,6 @@
 <template>
-  <div id="ConditionPanel">
+  <div id="UI_Blocker" v-if="showMyself" v-on:click="showMyself=false"></div>
+  <div id="ConditionPanel" v-if="showMyself">
     <div id="Title">{{ title }}</div>
     <table id="ConditionTable">
       <tr>
@@ -19,13 +20,13 @@
         <td class="NumberColumn BorderedTd">-</td>
         <td class="CompareColumn BorderedTd"></td>
         <td class="ValueColumn BorderedTd">default</td>
-        <td class="BorderedTd">
+        <td v-if="conditionData.type == 'graphic'" class="BorderedTd">
           <table>
             <tr>
               <td>
                 <input
                   type="text"
-                  v-model="defaultValue"
+                  v-model="conditionData.value"
                   v-on:change="handle_input_change(0, 'output')"
                 />
               </td>
@@ -35,8 +36,31 @@
             </tr>
           </table>
         </td>
+        <td v-if="conditionData.type == 'label'" class="BorderedTd">
+          <table>
+            <tr>
+              <td>
+              <input
+                v-model="conditionData.value"
+                v-bind:style="{
+                  border: 'none',
+                  color: conditionData.style.textColor,
+                  'background-color': conditionData.style.bgColor,
+                  'font-weight': conditionData.style.fontWeight,
+                  'font-family': conditionData.style.fontFamily,
+                  'font-size': conditionData.style.size,
+                  'text-align': conditionData.style.textAlign
+                }"
+              />
+              </td>
+              <td>
+                <button v-on:click="handle_style_click(conditionData.value, typeData)">|||</button>
+              </td>
+            </tr>
+          </table>
+        </td>
       </tr>
-      <tr v-for="item in conditions" v-bind:key="item.index">
+      <tr v-for="item in conditionData.condition" v-bind:key="item.index">
         <td
           class="RemoveCondition BorderedTd"
           v-on:click="show_add_remove_menu($event, item)"
@@ -66,7 +90,7 @@
             v-on:change="handle_input_change(item.index, 'value')"
           />
         </td>
-        <td v-if="type == 'graphic'" class="BorderedTd">
+        <td v-if="conditionData.type == 'graphic'" class="BorderedTd">
           <table class="Borderless">
             <tr class="Borderless">
               <td class="Borderless">
@@ -82,13 +106,30 @@
             </tr>
           </table>
         </td>
-        <td v-if="type == 'label'">
-          <span
-            ><input
-              type="text"
-              v-model="item.label"
-              v-on:change="handle_input_change(item.index, 'output')"
-          /></span>
+        <td v-if="conditionData.type == 'label'" class="BorderedTd">
+          <table class="Borderless">
+            <tr>
+              <td style="width:100%">
+              <input
+                v-bind:style="{
+                  border: 'none',
+                  color: item.style.textColor,
+                  'background-color': item.style.bgColor,
+                  'font-weight': item.style.fontWeight,
+                  'font-family': item.style.fontFamily,
+                  'font-size': item.style.size,
+                  'text-align': item.style.textAlign
+                }"
+                v-model="item.label"
+              />
+              </td>
+              <td>
+                <button v-on:click="handle_style_click(item.label, item.style)">
+                  |||
+                </button>
+              </td>
+            </tr>
+          </table>
         </td>
       </tr>
     </table>
@@ -100,42 +141,45 @@
       { name: 'Add Before', value: 'AddBefore', close: true },
       { name: 'Add After', value: 'AddAfter', close: true },
       { name: 'Delete', value: 'Delete', close: true },
-      { name: 'Cancel', value: 'Cancel', close: true },
     ]"
     v-on:message="catch_message"
   />
   <ContextMenu
     class="ContextMenu"
     ref="addMenu"
-    v-bind:optionList="[
-      { name: 'Add After', value: 'AddAfter', close: true },
-      { name: 'Cancel', value: 'Cancel', close: true },
-    ]"
+    v-bind:optionList="[{ name: 'Add After', value: 'AddAfter', close: true }]"
     v-on:message="catch_message"
   />
+  <TextStyle ref="textStylePanel" />
 </template>
 
 <script>
 import ContextMenu from "./ContextMenu.vue";
+import TextStyle from "./TextStyle.vue";
 
 export default {
   emits: ["message"],
-  components: { ContextMenu },
+  components: { ContextMenu, TextStyle },
   data() {
     return {
       type: "graphic",
+      /*
       title: "no title",
       defaultValue: "graphic/default.png",
       path: "graphic",
+      typeData: null,
       conditions: [
-        { index: 1, comparison: "<", value: 54, file: "graphic/one.png" },
+        { index: 1, comparison: "<", value: 54, file: "graphic/1.png" },
         {
           index: 2,
           comparison: "==",
           value: 100,
-          file: "graphic/two.png",
+          file: "graphic/2.png",
         },
       ],
+      */
+      conditionData: {},
+      showMyself: false,
       focusedItem: { isDefault: false, item: null },
     };
   },
@@ -147,7 +191,7 @@ export default {
       switch (message.command) {
         case "SelectFile":
           if (this.focusedItem.isDefault) {
-            this.defaultValue = message.name;
+            this.conditionData.value = message.name;
             this.$emit("message", {
               command: "UpdateCondition",
               name: "output",
@@ -191,8 +235,25 @@ export default {
           break;
       }
     },
-    set_condition(_conditions) {
-      this.conditions = _conditions;
+    show() {
+      this.showMyself = true;
+    },
+    hide() {
+      this.showMyself = false;
+    },
+    set_condition(title, conditionData) {
+      this.title = title;
+      this.conditionData = conditionData;
+      //console.log(this.conditionData);
+      //console.log(this.conditionData.style.bgColor);
+      /*
+      this.title = conditionData.title;
+      this.type = conditionData.type;
+      this.path = conditionData.path;
+      this.defaultValue = conditionData.value;
+      this.typeData = conditionData.typeData;
+      this.conditions = conditionData.conditions;
+      */
     },
     insert_condition(_index) {
       console.log("Inserting to " + _index);
@@ -212,6 +273,7 @@ export default {
         this.conditions[i].index -= 1;
       }
     },
+    /*
     update_content(_title, _type, _defaultValue, _path, _conditions) {
       this.title = _title;
       this.type = _type;
@@ -219,6 +281,7 @@ export default {
       this.path = _path;
       this.conditions = _conditions;
     },
+    */
     handle_input_change(_index, _name) {
       console.log("handle input change");
       this.$emit("message", {
@@ -249,21 +312,25 @@ export default {
     default_value_browse_click() {
       this.focusedItem.item = null;
       this.focusedItem.isDefault = true;
-      if (this.defaultValue.length == 0) {
+      if(this.conditionData.value.length == 0) {
         this.$emit("message", {
           command: "BrowseFolder",
           path: this.path,
         });
       }
-      let index = this.defaultValue.lastIndexOf("/");
+      let index = this.conditionData.value.lastIndexOf("/");
       let tempPath = "";
       if (index !== -1) {
-        tempPath = this.defaultValue.substring(0, index);
+        tempPath = this.conditionData.value.substring(0, index);
       }
       this.$emit("message", {
         command: "BrowseFolder",
         path: tempPath,
       });
+    },
+    handle_style_click(label, style) {
+      this.$refs.textStylePanel.set_content(label, style);
+      this.$refs.textStylePanel.show();
     },
     handle_add_condition() {
       console.log("Add condition");
@@ -362,8 +429,9 @@ select {
 }
 
 input {
-  font-size: 12px;
+  text-align: center;
   border: none;
+  width: 100%;
   border-color: transparent;
 }
 
@@ -377,19 +445,18 @@ input {
   border: none;
 }
 
-#UI_Blocker {
-  top: 0;
-  left: 0;
-  padding: 0;
-  margin: 0;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  opacity: 0.1;
-  z-index: 200;
-}
-
 .ContextMenu {
   z-index: 201;
 }
+
+#UI_Blocker {
+  top: 0;
+  left: 0;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  z-index: -1;
+}
+
 </style>

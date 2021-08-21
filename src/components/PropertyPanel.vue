@@ -1,6 +1,4 @@
 <template>
-  <button v-on:click="change_to_content1">Content 1</button>
-  <button v-on:click="change_to_content2">Content 2</button>
   <div id="PropertyPanel">
     <table>
       <tr>
@@ -10,35 +8,68 @@
         <td v-if="showMain">
           <div id="Title">{{ title }}</div>
           <table id="PropertyTable">
-            <tr v-for="item in properties" v-bind:key="item.name">
-              <td>{{ item.name }}</td>
-              <!--<td class="value-entry" contenteditable="true">{{ item.value }}</td>-->
-              <td class="value-entry" v-if="item.type == 'file'">
-                <div>
-                  <input type="text" v-model="item.value" />
-                  <button v-on:click="handle_browse_click(item)">...</button>
-                </div>
-              </td>
-              <td
-                class="value-entry"
-                v-if="item.type == 'text' || item.type == 'number'"
-              >
+            <tr v-for="(value, name) in properties" v-bind:key="name">
+              <td>{{ name }}</td>
+              <td v-if="typeof value == 'string'">
                 <input
-                  style="width: 98%"
-                  v-bind:type="item.type"
-                  v-model="item.value"
+                  type="text"
+                  v-bind:value="value"
+                  v-on:change="handle_property_change(name, $event)"
                 />
               </td>
-              <td class="value-entry" v-if="item.type == 'graphic'">
-                <div>
-                  <input type="text" v-model="item.value" />
-                  <button
-                    style="padding-left: 5px; padding-right: 5px"
-                    v-on:click="show_condition_panel($event, item.condition)"
-                  >
-                    +
-                  </button>
-                </div>
+              <td v-if="typeof value == 'number'">
+                <input
+                  type="number"
+                  v-bind:value="value"
+                  v-on:change="handle_property_change(name, $event)"
+                />
+              </td>
+              <td v-if="typeof value == 'object'" class="value-entry">
+                <table v-if="value.type == 'graphic'">
+                  <tr>
+                    <td style="border: none">
+                      <input
+                        style="width: 100%"
+                        type="text"
+                        v-model="value.value"
+                      />
+                    </td>
+                    <td style="border: none">
+                      <button
+                        style="padding-left: 5px; padding-right: 5px"
+                        v-on:click="show_condition_panel($event, value)"
+                      >
+                        +
+                      </button>
+                    </td>
+                  </tr>
+                </table>
+                <table v-if="value.type == 'label'">
+                  <tr>
+                    <td
+                      v-bind:style="{
+                        width: '100%',
+                        border: 'none',
+                        color: value.style.textColor,
+                        'background-color': value.style.bgColor,
+                        'font-weight': value.style.fontWeight,
+                        'font-family': value.style.fontFamily,
+                        'font-size': value.style.size,
+                        'text-align': value.style.textAlign,
+                      }"
+                    >
+                      {{ value.value }}
+                    </td>
+                    <td style="border: none">
+                      <button
+                        style="padding-left: 5px; padding-right: 5px"
+                        v-on:click="show_condition_label($event, value)"
+                      >
+                        +
+                      </button>
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
           </table>
@@ -50,7 +81,6 @@
     <FileExplorer v-on:message="catch_explorer_message" ref="fileExplorer" />
   </div>
   <div
-    v-if="showConditionPanel"
     id="conditionContainer"
     v-bind:style="{ top: conditionPos.top + 'px', right: 10 + 'px' }"
   >
@@ -63,8 +93,9 @@
 </template>
 
 <script>
-import FileExplorer from "./FileExplorer.vue";
 import ConditionPanel from "./ConditionPanel.vue";
+import FileExplorer from "./FileExplorer.vue";
+
 export default {
   components: {
     FileExplorer,
@@ -77,43 +108,14 @@ export default {
       showMain: false,
       togglerSymbol: "+",
       showFileBrowser: false,
+      showTextStyle: false,
       activeProperty: null,
       showBlocker: false,
       showConditionPanel: false,
       conditionPos: { top: 0, right: 0 },
-      properties: [
-        { name: "name1", value: "value1", type: "text" },
-        { name: "name2", value: "1234", type: "number" },
-        {
-          name: "name3",
-          value: "value3",
-          type: "file",
-          path: "designer",
-        },
-        {
-          name: "logic",
-          type: "graphic",
-          value: "graphic/default.png",
-          path: "graphic",
-        },
-      ],
-      //selectedProperty: null,
+      //properties: [],
       folderOpener: { component: null, property: null },
-      condition: [
-        { index: 1, comparison: "<", value: 99, file: "graphic/one.png" },
-        {
-          index: 2,
-          comparison: "==",
-          value: 22,
-          file: "graphic/two.png",
-        },
-        {
-          index: 3,
-          comparison: "!=",
-          value: 22,
-          file: "graphic/three.png",
-        },
-      ],
+      properties: {},
     };
   },
   methods: {
@@ -138,24 +140,23 @@ export default {
           break;
       }
     },
-    show_condition_panel(event, condition) {
-      switch (event.target.innerText) {
-        case "+":
-          event.target.innerText = "--";
-          this.showConditionPanel = true;
-          this.conditionPos = { top: event.clientY + 6, right: 10 };
-          this.conditionData = {};
-          this.conditionData.title = "Conditions";
-          this.conditionData.type = "graphic";
-          this.conditionData.path = "graphic";
-          this.conditionData.value = "graphic/default.png";
-          this.conditionData.conditions = condition;
-          break;
-        case "--":
-          event.target.innerText = "+";
-          this.showConditionPanel = false;
-          break;
-      }
+    show_condition_panel(event, conditionData) {
+      this.$refs.conditionPanel.show();
+      this.conditionPos = { top: event.clientY + 6, right: 10 };
+      this.$refs.conditionPanel.set_condition(
+        "Graphic Conditions",
+        conditionData
+      );
+      this.$refs.conditionPanel.show();
+    },
+    show_condition_label(event, conditionData) {
+      this.$refs.conditionPanel.show();
+      this.conditionPos = { top: event.clientY + 6, right: 10 };
+      this.$refs.conditionPanel.set_condition(
+        "Label Conditions",
+        conditionData
+      );
+      this.$refs.conditionPanel.show();
     },
     catch_folder_content(path, files) {
       this.$refs.fileExplorer.change_content(path, files);
@@ -164,8 +165,8 @@ export default {
       this.selectedProperty.value = "###";
       this.showBlocker = false;
     },
-    change_content(_properties) {
-      this.properties = _properties;
+    change_content(properties) {
+      this.properties = properties;
     },
     handle_browse_click(item) {
       //this.$emit("message", { command: "ItemClicked", data: typeData });
@@ -199,14 +200,6 @@ export default {
           break;
         case "SelectFile":
           this.folderOpener.component.catch_message(message);
-          /*
-          if (this.selectedProperty.file == undefined) {
-            this.selectedProperty.value = message.name;
-          } else {
-            this.selectedProperty.file = message.name;
-          }
-          this.selectedProperty = null;
-          */
           this.folderOpener.component = null;
           this.showFileBrowser = false;
           this.showBlocker = false;
@@ -218,7 +211,7 @@ export default {
       }
     },
     capture_condition_message(message) {
-      console.log("ConditionPanel got message");
+      console.log("Message from condition panel");
       console.log(message);
       switch (message.command) {
         case "UpdateContent":
@@ -244,11 +237,8 @@ export default {
           break;
       }
     },
-    change_to_content1() {
-      this.$refs.conditionPanel.set_condition(this.condition);
-    },
-    change_to_content2() {
-      this.$refs.conditionPanel.set_condition(this.condition);
+    handle_property_change(name, event) {
+      this.properties[name] = event.target.value;
     }
   },
 };
@@ -300,8 +290,8 @@ input {
 }
 
 .middle-popup {
-  background-color: lightblue;
   position: absolute;
+  background-color: lightblue;
   z-index: 501;
   top: 50%;
   left: 50%;
