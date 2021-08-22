@@ -39,31 +39,13 @@ export default {
           ]
         },
       },
-      content2: [
-        { name: "name1", value: "value1", type: "text" },
-        { name: "name2", value: "1234", type: "number" },
-        {
-          name: "name3",
-          value: "value3",
-          type: "file",
-          path: "designer",
-        },
-        {
-          name: "logic",
-          type: "graphic",
-          value: "graphic/default.png",
-          path: "graphic",
-          condition: [
-            { index: 1, comparison: "<", value: 54, file: "graphic/one_.png" },
-            {
-              index: 2,
-              comparison: "==",
-              value: 100,
-              file: "graphic/two_.png",
-            },
-          ],
-        },
-      ],
+      content2: {
+        width: 50,
+        height: 30,
+        top: 20,
+        left: 30,
+        display: { type: "file", path: "graphic", value: "graphic/link.png"}
+      },
       content3: {
         width: 80,
         height: 40,
@@ -141,87 +123,6 @@ export default {
           ]
         }
       },
-      content4: [
-        { name: "name1", value: "value1", type: "text" },
-        { name: "z-index", value: 20, type: "number" },
-        {
-          name: "name3",
-          value: "value3",
-          type: "file",
-          path: "designer",
-        },
-        {
-          name: "label1",
-          type: "label",
-          value: "Normal",
-          style: {
-            textColor: "White",
-            bgColor: "Navy",
-            fontWeight: "Bolder",
-            fontFamily: "Sans-serif",
-            size: 14,
-            textAlign: "Left",
-          },
-          condition: [
-            {
-              index: 1,
-              comparison: ">",
-              value: 100,
-              label: "Out Of Range",
-              style: {
-                textColor: "DarkRed",
-                bgColor: "LightPink",
-                fontWeight: "Bold",
-                fontFamily: "serif",
-                size: 13,
-                textAlign: "Left",
-              },
-            },
-            {
-              index: 2,
-              comparison: ">",
-              value: 65,
-              label: "Very High",
-              style: {
-                textColor: "Brown",
-                bgColor: "LightPink",
-                fontWeight: "Bold",
-                fontFamily: "Monospace",
-                size: 12,
-                textAlign: "Right",
-              },
-            },
-            {
-              index: 3,
-              comparison: ">",
-              value: 35,
-              label: "High",
-              style: {
-                textColor: "DarkMagenta",
-                bgColor: "SeaShell",
-                fontWeight: "Normal",
-                fontFamily: "Cursive",
-                size: 11,
-                textAlign: "Center",
-              },
-            },
-            {
-              index: 4,
-              comparison: "<",
-              value: -35,
-              label: "Low",
-              style: {
-                textColor: "Teal",
-                bgColor: "YellowGreen",
-                fontWeight: "Lighter",
-                fontFamily: "Monospace",
-                size: 10,
-                textAlign: "Right",
-              },
-            },
-          ],
-        },
-      ],
     };
   },
   components: {

@@ -163,21 +163,6 @@ export default {
   data() {
     return {
       type: "graphic",
-      /*
-      title: "no title",
-      defaultValue: "graphic/default.png",
-      path: "graphic",
-      typeData: null,
-      conditions: [
-        { index: 1, comparison: "<", value: 54, file: "graphic/1.png" },
-        {
-          index: 2,
-          comparison: "==",
-          value: 100,
-          file: "graphic/2.png",
-        },
-      ],
-      */
       conditionData: {},
       showMyself: false,
       focusedItem: { isDefault: false, item: null },
@@ -244,44 +229,26 @@ export default {
     set_condition(title, conditionData) {
       this.title = title;
       this.conditionData = conditionData;
-      //console.log(this.conditionData);
-      //console.log(this.conditionData.style.bgColor);
-      /*
-      this.title = conditionData.title;
-      this.type = conditionData.type;
-      this.path = conditionData.path;
-      this.defaultValue = conditionData.value;
-      this.typeData = conditionData.typeData;
-      this.conditions = conditionData.conditions;
-      */
     },
     insert_condition(_index) {
       console.log("Inserting to " + _index);
-      this.conditions.splice(_index, 0, {
+      console.log(this.conditionData.condition);
+      this.conditionData.condition.splice(_index, 0, {
         index: _index + 1,
         comparison: "==",
         value: 0,
         file: "graphic/default.png",
       });
-      for (let i = _index + 1; i < this.conditions.length; ++i) {
-        this.conditions[i].index += 1;
+      for (let i = _index + 1; i < this.conditionData.condition.length; ++i) {
+        this.conditionData.condition[i].index += 1;
       }
     },
     delete_condition(_index) {
-      this.conditions.splice(_index, 1);
-      for (let i = _index; i < this.conditions.length; ++i) {
-        this.conditions[i].index -= 1;
+      this.conditionData.condition.splice(_index, 1);
+      for (let i = _index; i < this.conditionData.condition.length; ++i) {
+        this.conditionData.condition[i].index -= 1;
       }
     },
-    /*
-    update_content(_title, _type, _defaultValue, _path, _conditions) {
-      this.title = _title;
-      this.type = _type;
-      this.defaultValue = _defaultValue;
-      this.path = _path;
-      this.conditions = _conditions;
-    },
-    */
     handle_input_change(_index, _name) {
       console.log("handle input change");
       this.$emit("message", {

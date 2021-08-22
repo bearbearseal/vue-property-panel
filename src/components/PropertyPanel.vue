@@ -70,8 +70,101 @@
                     </td>
                   </tr>
                 </table>
+                <table v-if="value.type == 'file'">
+                  <tr>
+                    <td style="border: none">
+                      <input style="width:100%" type="text" v-bind:value="value.value" v-on:change="handle_object_property_change(name, $event)" />
+                    </td>
+                    <td style="border: none">
+                      <button v-on:click="handle_browse_click(value)">
+                        ...
+                      </button>
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
+            <!--
+            <tr v-for="item in properties.global" v-bind:key="item.name">
+              <td>{{ item.name }}</td>
+              <td class="value-entry" v-if="item.type == 'file'">
+                <table>
+                  <tr>
+                    <td style="border: none">
+                      <input type="text" v-model="item.value" />
+                    </td>
+                    <td style="border: none">
+                      <button v-on:click="handle_browse_click(item)">
+                        ...
+                      </button>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+              <td class="value-entry">
+                <input type="text" v-on:change="handle_property_change()">
+              </td>
+              <td
+                class="value-entry"
+                v-if="item.type == 'text' || item.type == 'number'"
+              >
+                <input
+                  style="width: 98%"
+                  v-bind:type="item.type"
+                  v-model="item.value"
+                />
+              </td>
+              <td class="value-entry" v-if="item.type == 'graphic'">
+                <table>
+                  <tr>
+                    <td style="border: none">
+                      <input
+                        style="width: 100%"
+                        type="text"
+                        v-model="item.value"
+                      />
+                    </td>
+                    <td style="border: none">
+                      <button
+                        style="padding-left: 5px; padding-right: 5px"
+                        v-on:click="show_condition_panel($event, item)"
+                      >
+                        +
+                      </button>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+              <td class="value-entry" v-if="item.type == 'label'">
+                <table>
+                  <tr>
+                    <td
+                      v-bind:style="{
+                        width: '100%',
+                        border: 'none',
+                        color: item.style.textColor,
+                        'background-color': item.style.bgColor,
+                        'font-weight': item.style.fontWeight,
+                        'font-family': item.style.fontFamily,
+                        'font-size': item.style.size,
+                        'text-align': item.style.textAlign,
+                      }"
+                    >
+                      {{ item.value }}
+                    </td>
+                    <td style="border: none">
+                      <button
+                        style="padding-left: 5px; padding-right: 5px"
+                        v-on:click="show_condition_label($event, item)"
+                      >
+                        +
+                      </button>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            -->
           </table>
         </td>
       </tr>
